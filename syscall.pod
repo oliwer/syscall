@@ -1,0 +1,83 @@
+=encoding utf8
+
+=head1 NAME
+
+syscall - send system calls from your shell
+
+=head1 SYNOPSIS
+
+  syscall [-<n>] name [args...] [, name [args...]]...
+
+  syscall [-h|--help]
+
+  syscall [-v|--version]
+
+To replicate the following C fragment:
+
+  int fd = open("/my/file", O_WRONLY, 0755);
+  write(fd, "hello", strlen("hello"));
+  close(fd);
+
+you would use L<syscall> like this:
+
+  syscall open /my/file 1 0755 , write \$0 hello \#hello , close \$0
+
+To print the return code of a system call, use C<echo>:
+
+  syscall open /dev/random 0 , echo \$0
+
+=head1 DESCRIPTION
+
+Execute a list of raw system calls. All the system calls listed in your
+system's unistd.h are supported, with up to 5 arguments. A maximum of 20
+calls can be executed per invocation, each separated by a comma.
+
+Arguments starting by a C<#> symbol are used to give a string length. For
+instance, C<#hello> would be evaluated as 5.
+
+Arguments starting by a C<$> followed by a number from 0 to 19 refer to a
+previous system call return code. For instance, C<$0> refers to to the return
+code of the first system call executed. To display those values, use the
+C<echo> built-in command.
+
+The C<echo> command can be used like any other system call to easily
+display C<$> or C<#> values, or any string or number.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<-<n>>
+
+  # print "foo" 10 times
+  syscall -10 write 1 "foo\n" 4
+
+Execute the given commands I<n> times, where I<n> is an integer between 0
+and C<INT_MAX>.
+
+=item B<-h --help>
+
+=item B<-v --version>
+
+=back
+
+=head1 EXIT STATUS
+
+C<0> if all syscalls were successful, C<1> on error.
+
+Note that if any system returns -1, the program will exit immediately after
+printing the associated error message.
+
+=head1 COPYRIGHT
+
+Copyright 2017 Olivier Duclos.
+
+This program is distributed under the ISC license.
+
+Heavily inspired by the syscall command from AIX.
+
+=head1 SEE ALSO
+
+Linux Programmer's manual : L<syscall(2)>
+
+This project's homepage: L<https://github.com/oliwer/syscall>

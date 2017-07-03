@@ -1,0 +1,4 @@
+- add more tests
+- support common IO flag names
+- provide a buf variable (1k)
+- write a bash builtin
