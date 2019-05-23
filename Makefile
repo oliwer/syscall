@@ -1,20 +1,22 @@
 PROG     := syscall
 VER      := 1.0
-BITS     ?= $(shell getconf LONG_BIT)
 CFLAGS   ?= -Os -Wall
 CPPFLAGS := -DVERSION=\"$(VER)\"
 PREFIX   ?= /usr/local
 MANDIR   ?= $(PREFIX)/man
 
-all: $(PROG) $(PROG).1
+all: $(PROG) $(PROG).1 README.pod
 
 $(PROG): systab.h
 
-systab.h: /usr/include/asm/unistd_$(BITS).h
+systab.h: /usr/include/asm-generic/unistd.h
 	./gentab.pl < $< > $@
 
 $(PROG).1: $(PROG).pod
 	pod2man -c "" -n $(PROG) -r $(VER) -s 1 $< $@
+
+README.pod: $(PROG).pod
+	cp -f $< $@
 
 check: $(PROG)
 	@./tests.sh
