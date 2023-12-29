@@ -1,15 +1,16 @@
 PROG     := syscall
 VER      := 1.0
 CFLAGS   ?= -Os -Wall
-CPPFLAGS := -DVERSION=\"$(VER)\"
+CPPFLAGS += -DVERSION=\"$(VER)\"
 PREFIX   ?= /usr/local
-MANDIR   ?= $(PREFIX)/man
+MANDIR   ?= $(PREFIX)/share/man
+UNISTD_H ?= $(shell find /usr/include -name unistd_$(BITS).h)
 
 all: $(PROG) $(PROG).1 README.pod
 
 $(PROG): systab.h
 
-systab.h: /usr/include/asm-generic/unistd.h
+systab.h: $(UNISTD_H)
 	./gentab.pl < $< > $@
 
 $(PROG).1: $(PROG).pod
