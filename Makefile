@@ -1,17 +1,17 @@
 PROG     := syscall
-VER      := 1.0
-CFLAGS   ?= -Os -Wall
+VER      := 1.1
+CFLAGS   ?= -std=c99 -Os -Wall -Wextra -pedantic
 CPPFLAGS += -DVERSION=\"$(VER)\"
 PREFIX   ?= /usr/local
 MANDIR   ?= $(PREFIX)/share/man
-UNISTD_H ?= $(shell find /usr/include -name unistd_$(BITS).h)
 
 all: $(PROG) $(PROG).1 README.pod
 
 $(PROG): systab.h
+	$(CC) $(LDFLAGS) $(CFLAGS) $(CPPFLAGS) -o $@ $@.c
 
-systab.h: $(UNISTD_H)
-	./gentab.pl < $< > $@
+systab.h:
+	sh lssyscalls | awk '{printf "{\"%s\", %d},\n", $$1, $$2}' > $@
 
 $(PROG).1: $(PROG).pod
 	pod2man -c "" -n $(PROG) -r $(VER) -s 1 $< $@

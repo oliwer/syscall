@@ -23,7 +23,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "systab.h"
+#ifndef VERSION
+#define VERSION "unknown"
+#endif
 
 #define LEN(x)      (sizeof(x) / sizeof(*x))
 #define streq(a,b)  (strcmp(a,b) == 0)
@@ -31,6 +33,16 @@
 #define CMD_MAX   20  /* maximum number of commands per invocation */
 
 static int ret_values[CMD_MAX];
+
+typedef struct syscall {
+  const char *name;
+  long code;
+} Syscall;
+
+Syscall systab[] = {
+# include "systab.h"
+  {"", 0}
+};
 
 void usage()
 {
@@ -44,18 +56,18 @@ int scomp(const void *m1, const void *m2)
   return strcmp(sys1->name, sys2->name);
 }
 
-long str2syscall(const char *name)
+long lookup(const char *name)
 {
   Syscall key, *res;
 
-  key.name = (char *)name;
+  key.name = name;
 
   res = bsearch(&key, systab, LEN(systab), sizeof key, scomp);
   if (res == NULL) {
     errx(1, "unknown system call: %s", name);
   }
 
-  return (long)res->code;
+  return res->code;
 }
 
 /* Quick and dirty way to unescape \n at the end of strings */
@@ -131,7 +143,7 @@ void parse_syscall(int cmd_no, char **cmd, int cmd_len)
     return;
   }
 
-  syscall_num = str2syscall(syscall_name);
+  syscall_num = lookup(syscall_name);
   if (syscall_num == -1) {
     errx(1, "unknown system call '%s'", syscall_name);
   }
@@ -188,9 +200,7 @@ void split_cmdline(int argc, char **argv)
 
 /* for debugging */
 void dump_ret_values(void) {
-  int i;
-
-  for (i = 0; i < CMD_MAX; i++) {
+  for (int i = 0; i < CMD_MAX; i++) {
     printf("%0d  %d\n", i, ret_values[i]);
   }
 }
@@ -231,9 +241,6 @@ int main(int argc, char **argv)
   }
 
   memset(ret_values, -1, sizeof ret_values);
-
-  /* Prepare the syscalls table for searching */
-  qsort(systab, LEN(systab), sizeof(Syscall), scomp);
 
   while (repeat--) {
     split_cmdline(argc - skip, argv + skip);

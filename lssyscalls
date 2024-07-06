@@ -1,0 +1,10 @@
+#!/bin/sh
+LC_ALL=C
+export LC_ALL
+case `uname` in
+  Linux) prefix=__NR_;;
+  *) prefix=SYS_;;
+esac
+cpp -include sys/syscall.h -dM </dev/null \
+| sed -n "s/^#define $prefix//p" \
+| sort -k1
