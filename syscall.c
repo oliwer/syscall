@@ -15,6 +15,7 @@
   PERFORMANCE OF THIS SOFTWARE.
 */
 
+#define _DEFAULT_SOURCE
 #include <err.h>
 #include <errno.h>
 #include <limits.h>
